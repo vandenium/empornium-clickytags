@@ -2,9 +2,9 @@
 // @name        Empornium ClickyTags
 // @description A clickable Top 300 menu of tags.
 // @namespace   Empornium
-// @match       https://www.empornium.is/torrents.php?id*
+// @include     /^https://www\.empornium\.(me|sx|is)\/torrents.php\?id*/
 // @grant       none
-// @version     1.0.0
+// @version     1.0.1
 // @author      vandenium
 // @grant       GM_setValue
 // @grant       GM_getValue
@@ -12,6 +12,8 @@
 // Version
 // ==/UserScript==
 // Changelog:
+// Version 1.0.1
+//  - Update @match
 // Version 1.0.0
 //  - The initial version.
 //  - Features
