@@ -3,8 +3,9 @@
 // @description A clickable Top 300 menu of tags.
 // @namespace   Empornium
 // @include     /^https://www\.empornium\.(me|sx|is)\/torrents.php\?id*/
+// @include     /^https://www\.empornium\.(me|sx|is)\/upload.php/
 // @grant       none
-// @version     1.0.1
+// @version     1.1.0
 // @author      vandenium
 // @grant       GM_setValue
 // @grant       GM_getValue
@@ -12,15 +13,19 @@
 // Version
 // ==/UserScript==
 // Changelog:
-// Version 1.0.1
-//  - Update @match
+// Version 1.1.0
+//  - Works on Upload page now.
+//  - Clicking outside of ClickyTags modal closes it.
+//  - Resize modal and link.
+//  - Format cache date in modal title.
 // Version 1.0.0
 //  - The initial version.
 //  - Features
 //    - Popup menu of Top 300 tags
 //    - Click to toggle adding/removing tag to the tags field
 //    - Indicates pre-existing tags (not selectable)
-//    - Updates tag list weekly for performance.
+//    - Updates tag list weekly for performance
+//    - Works on title and upload pages
 //    - Works with Emp++ Tag Highlighter
 // Future:
 //  - Make configurable? Top 100, 200, 300...
@@ -30,13 +35,26 @@ const addLink = () => {
   const link = document.createElement('a');
   link.href = '#';
   link.textContent = 'Top 300 Tags';
-  link.id = 'clickytags-link'
+  link.id = 'clickytags-link';
+  link.style.textDecoration = 'none';
+  link.style.fontSize = '1.2em';
 
   link.addEventListener('click', (e) => {
     e.preventDefault();
     toggleMenu(e);
   });
-  document.querySelector('#tag_container').append(link);
+
+  // Place depending on page
+  let target;
+  let action
+  if (window.location.pathname.includes('torrent')) {
+    target = '#tag_container';
+    action = 'append';
+  } else {
+    target = '#clicktags-parent-container';
+    action = 'prepend';
+  }
+  document.querySelector(target)[action](link);
   return link;
 }
 
@@ -69,6 +87,17 @@ function getPreviouslySelectedTags() {
 }
 
 const createTagContainer = (tagNames, cache) => {
+
+  const dateOptions = {
+    year: 'numeric', month: 'numeric', day: 'numeric',
+    hour: 'numeric', minute: 'numeric', second: 'numeric',
+    hour12: false,
+  };
+
+  const formattedCacheDate = new Intl.DateTimeFormat('en-US', dateOptions).format(cache.date);
+
+  const isTorrentPage = window.location.pathname.includes('torrent');
+
   const template = `
   
   <style>
@@ -90,13 +119,13 @@ const createTagContainer = (tagNames, cache) => {
   
   div#clickytags-container  {
     position:absolute;
-    right: 0;
+    right: ${isTorrentPage ? 0 : undefined}px;
     background-color: rgba(0, 0, 0, 0.9);
     padding: 5px;
     border: solid #333 1px;
     border-radius: 5px;
     display: none;
-    width: 87%;
+    width: 52%;
   }
   
   div#clickytags-container #close {
@@ -132,7 +161,7 @@ const createTagContainer = (tagNames, cache) => {
   
 </style>
 <div>
-<h3>Top 300 Tags since ${cache.date}. (cache refreshes weekly)</h3>
+<h3>Top 300 Tags since ${formattedCacheDate} (cache refreshes weekly)</h3>
   <div id='close'>✖️</div>
 </div>
 
@@ -199,8 +228,19 @@ const createTagContainer = (tagNames, cache) => {
 const addToPage = (tagContainer) => {
   const parentContainer = document.createElement('div');
   parentContainer.style.width = '100%';
-  const target = document.querySelector('#details_top');
+  parentContainer.id = 'clicktags-parent-container';
+
+  let target;
+
+  // Uploads page
+  if (window.location.pathname.includes('upload')) {
+    target = document.querySelectorAll('.uploadbody')[4].querySelectorAll('td')[1];
+  } else {
+    target = document.querySelector('#details_top');
+  }
+
   tagContainer.style.display = 'none';
+  tagContainer.style.right = undefined;
   parentContainer.append(tagContainer);
   target.append(parentContainer);
 };
@@ -277,6 +317,18 @@ document.querySelector('body').addEventListener('keyup', (e) => {
     closeMenu();
   }
 });
+
+// Close clickytags modal if clicking outside of it.
+document.querySelector('body').addEventListener('click', (e) => {
+  if (document.querySelector('#clickytags-container').style.display === 'none') return;
+
+  const clickyTagContainer = e.target.closest('#clickytags-container');
+
+  if (!clickyTagContainer && e.target.id !== 'clickytags-link') {
+    closeMenu();
+  }
+});
+
 
 // After tag section renders, update the tag container with existing tags.
 window.setTimeout(() => {
