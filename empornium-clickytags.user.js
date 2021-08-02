@@ -4,15 +4,15 @@
 // @namespace   Empornium
 // @include     /^https://www\.empornium\.(me|sx|is)\/torrents.php\?id*/
 // @include     /^https://www\.empornium\.(me|sx|is)\/upload.php/
-// @grant       none
-// @version     1.1.0
+// @version     1.1.1
 // @author      vandenium
 // @grant       GM_setValue
 // @grant       GM_getValue
-// @grant       GM_deleteValue
 // Version
 // ==/UserScript==
 // Changelog:
+// Version 1.1.1
+//  - Remove overlooked @grant none.
 // Version 1.1.0
 //  - Works on Upload page now.
 //  - Clicking outside of ClickyTags modal closes it.
